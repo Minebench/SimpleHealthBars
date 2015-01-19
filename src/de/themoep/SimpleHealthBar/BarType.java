@@ -7,6 +7,7 @@ import java.util.List;
  */
 public enum BarType {
     HEARTBAR,
+    PIPEBAR,
     HEALTHSHORT,
     BOSSBAR;
 

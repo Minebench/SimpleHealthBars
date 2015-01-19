@@ -63,7 +63,8 @@ public class SimpleHealthBar extends JavaPlugin implements Listener {
         String name = event.getEntity().getCustomName();
         if(name != null && !name.equals("")) {
             LivingEntity e = (LivingEntity) event.getEntity();
-            if(name.contains("{heartbar}")) {
+
+            if(name.toLowerCase().contains("{heartbar}")) {
                 mobs.put(event.getEntity().getUniqueId(), new Bar(BarType.HEARTBAR, name));
                 double health = e.getHealth();
                 String s = ChatColor.RED + "";
@@ -81,7 +82,30 @@ public class SimpleHealthBar extends JavaPlugin implements Listener {
                 }
                name = name.replace("{heartbar}", s);
             }
-            if(name.contains("{healthshort}")) {
+
+            if(name.toLowerCase().contains("{pipebar}")) {
+                if(mobs.containsKey(event.getEntity().getUniqueId()))
+                    mobs.get(event.getEntity().getUniqueId()).getTypes().add(BarType.PIPEBAR);
+                else
+                    mobs.put(event.getEntity().getUniqueId(), new Bar(BarType.PIPEBAR, name));
+                double health = e.getHealth();
+                String s = ChatColor.RED + "";
+                int i = 0;
+                while(i < health/2) {
+                    s = s + "|";
+                    i++;
+                }
+                if(health < e.getMaxHealth()) {
+                    s += ChatColor.DARK_GRAY + "";
+                    while(i < e.getMaxHealth()/2) {
+                        s += "|";
+                        i++;
+                    }
+                }
+                name = name.replace("{pipebar}", s);
+            }
+
+            if(name.toLowerCase().contains("{healthshort}")) {
                 if(mobs.containsKey(event.getEntity().getUniqueId()))
                     mobs.get(event.getEntity().getUniqueId()).getTypes().add(BarType.HEALTHSHORT);
                 else
@@ -89,7 +113,8 @@ public class SimpleHealthBar extends JavaPlugin implements Listener {
                 int health = (int) e.getHealth();
                name = name.replace("{healthshort}", ChatColor.RED + Integer.toString(health/2) + ChatColor.GRAY + "/" + Integer.toString((int) e.getMaxHealth()/2));
             }
-            if(name.contains("{bossbar}")) {
+
+            if(name.toLowerCase().contains("{bossbar}")) {
                 if(mobs.containsKey(event.getEntity().getUniqueId()))
                     mobs.get(event.getEntity().getUniqueId()).getTypes().add(BarType.BOSSBAR);
                 else
@@ -126,9 +151,28 @@ public class SimpleHealthBar extends JavaPlugin implements Listener {
                 }
                 name = name.replace("{heartbar}",s);
             }
+
+            if(b.getTypes().contains(BarType.PIPEBAR)) {
+                String s = ChatColor.RED + "";
+                int i = 0;
+                while(i < health/2) {
+                    s = s + "|";
+                    i++;
+                }
+                if(health < e.getMaxHealth()) {
+                    s += ChatColor.DARK_GRAY + "";
+                    while(i < e.getMaxHealth()/2) {
+                        s += "|";
+                        i++;
+                    }
+                }
+                name = name.replace("{pipebar}", s);
+            }
+
             if(b.getTypes().contains(BarType.HEALTHSHORT)) {
                 name = name.replace("{healthshort}", ChatColor.RED + Integer.toString(health/2) + ChatColor.GRAY + "/" + Integer.toString((int) e.getMaxHealth()/2));
             }
+
             if(b.getTypes().contains(BarType.BOSSBAR)) {
                 // TODO: Work in Progress
             }
