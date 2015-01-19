@@ -8,7 +8,7 @@ Mobs with special variables in the name get healthbars.
 Planned:
 * {bossbar} - Boss life bar
 
-# Copyright
+### Copyright
 ```
 Copyright (C) 2015 Phoenix616.  All rights reserved.
 
