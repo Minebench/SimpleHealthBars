@@ -60,69 +60,39 @@ public class SimpleHealthBar extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onMobSpawn(CreatureSpawnEvent event) {
-        String name = event.getEntity().getCustomName();
+        LivingEntity e = event.getEntity();
+        String name = e.getCustomName();
         if(name != null && !name.equals("")) {
-            LivingEntity e = (LivingEntity) event.getEntity();
 
             if(name.toLowerCase().contains("{heartbar}")) {
-                mobs.put(event.getEntity().getUniqueId(), new Bar(BarType.HEARTBAR, name));
-                double health = e.getHealth();
-                String s = ChatColor.RED + "";
-                int i = 0;
-                while(i < health/2) {
-                    s = s + "❤";
-                    i++;
-                }
-                if(health < e.getMaxHealth()) {
-                    s += ChatColor.DARK_GRAY + "";
-                    while(i < e.getMaxHealth()/2) {
-                        s += "❤";
-                        i++;
-                    }
-                }
-               name = name.replace("{heartbar}", s);
+                if(mobs.containsKey(e.getUniqueId()))
+                    mobs.get(e.getUniqueId()).getTypes().add(BarType.HEARTBAR);
+                else
+                    mobs.put(e.getUniqueId(), new Bar(BarType.HEARTBAR, name));
             }
 
             if(name.toLowerCase().contains("{pipebar}")) {
-                if(mobs.containsKey(event.getEntity().getUniqueId()))
-                    mobs.get(event.getEntity().getUniqueId()).getTypes().add(BarType.PIPEBAR);
+                if(mobs.containsKey(e.getUniqueId()))
+                    mobs.get(e.getUniqueId()).getTypes().add(BarType.PIPEBAR);
                 else
-                    mobs.put(event.getEntity().getUniqueId(), new Bar(BarType.PIPEBAR, name));
-                double health = e.getHealth();
-                String s = ChatColor.RED + "";
-                int i = 0;
-                while(i < health/2) {
-                    s = s + "|";
-                    i++;
-                }
-                if(health < e.getMaxHealth()) {
-                    s += ChatColor.DARK_GRAY + "";
-                    while(i < e.getMaxHealth()/2) {
-                        s += "|";
-                        i++;
-                    }
-                }
-                name = name.replace("{pipebar}", s);
+                    mobs.put(e.getUniqueId(), new Bar(BarType.PIPEBAR, name));
             }
 
             if(name.toLowerCase().contains("{healthshort}")) {
-                if(mobs.containsKey(event.getEntity().getUniqueId()))
-                    mobs.get(event.getEntity().getUniqueId()).getTypes().add(BarType.HEALTHSHORT);
+                if(mobs.containsKey(e.getUniqueId()))
+                    mobs.get(e.getUniqueId()).getTypes().add(BarType.HEALTHSHORT);
                 else
-                    mobs.put(event.getEntity().getUniqueId(), new Bar(BarType.HEALTHSHORT, name));
-                int health = (int) e.getHealth();
-               name = name.replace("{healthshort}", ChatColor.RED + Integer.toString(health/2) + ChatColor.GRAY + "/" + Integer.toString((int) e.getMaxHealth()/2));
+                    mobs.put(e.getUniqueId(), new Bar(BarType.HEALTHSHORT, name));
             }
 
             if(name.toLowerCase().contains("{bossbar}")) {
-                if(mobs.containsKey(event.getEntity().getUniqueId()))
-                    mobs.get(event.getEntity().getUniqueId()).getTypes().add(BarType.BOSSBAR);
+                if(mobs.containsKey(e.getUniqueId()))
+                    mobs.get(e.getUniqueId()).getTypes().add(BarType.BOSSBAR);
                 else
-                    mobs.put(event.getEntity().getUniqueId(), new Bar(BarType.BOSSBAR, name));
-                saveutils.writeMap(saveutils, "mobbar.map");
-                // TODO: Work in Progress
+                    mobs.put(e.getUniqueId(), new Bar(BarType.BOSSBAR, name));
             }
-            event.getEntity().setCustomName(name);
+
+            this.setBar(e, (int) (e.getHealth()));
         }
     }
 
@@ -130,54 +100,62 @@ public class SimpleHealthBar extends JavaPlugin implements Listener {
     public void onMobDamager(EntityDamageEvent event) {
         if(event.getEntity() instanceof LivingEntity && mobs.containsKey(event.getEntity().getUniqueId())) {
             LivingEntity e = (LivingEntity) event.getEntity();
-            Bar b = mobs.get(e.getUniqueId());
-            String name = b.getName();
-            int health = (int) (e.getHealth() - event.getDamage());
-            if(health < 0)
-                health = 0;
-            if(b.getTypes().contains(BarType.HEARTBAR)) {
-                String s = ChatColor.RED + "";
-                int i = 0;
-                while(i < health/2) {
-                    s = s + "❤";
-                    i++;
-                }
-                if(health < e.getMaxHealth()) {
-                    s += ChatColor.DARK_GRAY + "";
-                    while(i < e.getMaxHealth()/2) {
-                        s += "❤";
-                        i++;
-                    }
-                }
-                name = name.replace("{heartbar}",s);
-            }
-
-            if(b.getTypes().contains(BarType.PIPEBAR)) {
-                String s = ChatColor.RED + "";
-                int i = 0;
-                while(i < health/2) {
-                    s = s + "|";
-                    i++;
-                }
-                if(health < e.getMaxHealth()) {
-                    s += ChatColor.DARK_GRAY + "";
-                    while(i < e.getMaxHealth()/2) {
-                        s += "|";
-                        i++;
-                    }
-                }
-                name = name.replace("{pipebar}", s);
-            }
-
-            if(b.getTypes().contains(BarType.HEALTHSHORT)) {
-                name = name.replace("{healthshort}", ChatColor.RED + Integer.toString(health/2) + ChatColor.GRAY + "/" + Integer.toString((int) e.getMaxHealth()/2));
-            }
-
-            if(b.getTypes().contains(BarType.BOSSBAR)) {
-                // TODO: Work in Progress
-            }
-            e.setCustomName(name);
+            this.setBar(e, (int) (e.getHealth() - event.getDamage()));
         }
+    }
+
+    /**
+     * Set the bar above the head of an entity to the bars defined in the map
+     * @param e The entity
+     * @param health The health to set the bar to
+     */
+    public void setBar(LivingEntity e, int health) {
+        Bar b = mobs.get(e.getUniqueId());
+        String name = b.getName();
+        if(health < 0)
+            health = 0;
+        if(b.getTypes().contains(BarType.HEARTBAR)) {
+            String s = ChatColor.RED + "";
+            int i = 0;
+            while(i < health/2) {
+                s = s + "❤";
+                i++;
+            }
+            if(health < e.getMaxHealth()) {
+                s += ChatColor.DARK_GRAY + "";
+                while(i < e.getMaxHealth()/2) {
+                    s += "❤";
+                    i++;
+                }
+            }
+            name = name.replace("{heartbar}",s);
+        }
+
+        if(b.getTypes().contains(BarType.PIPEBAR)) {
+            String s = ChatColor.RED + "";
+            int i = 0;
+            while(i < health/2) {
+                s = s + "|";
+                i++;
+            }
+            if(health < e.getMaxHealth()) {
+                s += ChatColor.DARK_GRAY + "";
+                while(i < e.getMaxHealth()/2) {
+                    s += "|";
+                    i++;
+                }
+            }
+            name = name.replace("{pipebar}", s);
+        }
+
+        if(b.getTypes().contains(BarType.HEALTHSHORT)) {
+            name = name.replace("{healthshort}", ChatColor.RED + Integer.toString(health/2) + ChatColor.GRAY + "/" + Integer.toString((int) e.getMaxHealth()/2));
+        }
+
+        if(b.getTypes().contains(BarType.BOSSBAR)) {
+            // TODO: Work in Progress
+        }
+        e.setCustomName(name);
     }
 
     @EventHandler
