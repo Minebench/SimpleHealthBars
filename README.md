@@ -3,6 +3,7 @@ Simple mob health bar Bukkit plugin.
 
 Mobs with special variables in the name get healthbars.
 * {heartbar} - Bar with hearts [[image](http://i.moep.tv/ce83J0EL.png)]
+* {pipebar} - Bar with pipes (|) [[image](http://i.moep.tv/mDh27eBr.png)]
 * {healthshort} - Short health (e.g. 10/16) [[image](http://i.moep.tv/hKQsangD.png)]
 
 Planned:
