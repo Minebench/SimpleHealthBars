@@ -1,6 +1,6 @@
 name: SimpleHealthBar
 main: de.themoep.SimpleHealthBar.SimpleHealthBar
-version: 0.1
+version: 0.1.1
 description: Lets you display healthbars for mobs
 authors: [Phoenix616]
 commands:
