@@ -110,52 +110,54 @@ public class SimpleHealthBar extends JavaPlugin implements Listener {
      * @param health The health to set the bar to
      */
     public void setBar(LivingEntity e, int health) {
-        Bar b = mobs.get(e.getUniqueId());
-        String name = b.getName();
-        if(health < 0)
-            health = 0;
-        if(b.getTypes().contains(BarType.HEARTBAR)) {
-            String s = ChatColor.RED + "";
-            int i = 0;
-            while(i < health/2) {
-                s = s + "❤";
-                i++;
-            }
-            if(health < e.getMaxHealth()) {
-                s += ChatColor.DARK_GRAY + "";
-                while(i < e.getMaxHealth()/2) {
-                    s += "❤";
+        if(mobs.containsKey(e.getUniqueId())) {
+            Bar b = mobs.get(e.getUniqueId());
+            String name = b.getName();
+            if (health < 0)
+                health = 0;
+            if (b.getTypes().contains(BarType.HEARTBAR)) {
+                String s = ChatColor.RED + "";
+                int i = 0;
+                while (i < health / 2) {
+                    s = s + "❤";
                     i++;
                 }
+                if (health < e.getMaxHealth()) {
+                    s += ChatColor.DARK_GRAY + "";
+                    while (i < e.getMaxHealth() / 2) {
+                        s += "❤";
+                        i++;
+                    }
+                }
+                name = name.replace("{heartbar}", s);
             }
-            name = name.replace("{heartbar}",s);
-        }
 
-        if(b.getTypes().contains(BarType.PIPEBAR)) {
-            String s = ChatColor.RED + "";
-            int i = 0;
-            while(i < health/2) {
-                s = s + "|";
-                i++;
-            }
-            if(health < e.getMaxHealth()) {
-                s += ChatColor.DARK_GRAY + "";
-                while(i < e.getMaxHealth()/2) {
-                    s += "|";
+            if (b.getTypes().contains(BarType.PIPEBAR)) {
+                String s = ChatColor.RED + "";
+                int i = 0;
+                while (i < health / 2) {
+                    s = s + "|";
                     i++;
                 }
+                if (health < e.getMaxHealth()) {
+                    s += ChatColor.DARK_GRAY + "";
+                    while (i < e.getMaxHealth() / 2) {
+                        s += "|";
+                        i++;
+                    }
+                }
+                name = name.replace("{pipebar}", s);
             }
-            name = name.replace("{pipebar}", s);
-        }
 
-        if(b.getTypes().contains(BarType.HEALTHSHORT)) {
-            name = name.replace("{healthshort}", ChatColor.RED + Integer.toString(health/2) + ChatColor.GRAY + "/" + Integer.toString((int) e.getMaxHealth()/2));
-        }
+            if (b.getTypes().contains(BarType.HEALTHSHORT)) {
+                name = name.replace("{healthshort}", ChatColor.RED + Integer.toString(health / 2) + ChatColor.GRAY + "/" + Integer.toString((int) e.getMaxHealth() / 2));
+            }
 
-        if(b.getTypes().contains(BarType.BOSSBAR)) {
-            // TODO: Work in Progress
+            if (b.getTypes().contains(BarType.BOSSBAR)) {
+                // TODO: Work in Progress
+            }
+            e.setCustomName(name);
         }
-        e.setCustomName(name);
     }
 
     @EventHandler
