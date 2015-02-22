@@ -3,6 +3,7 @@ main: de.themoep.SimpleHealthBar.SimpleHealthBar
 version: 0.1.2
 description: Lets you display healthbars for mobs
 authors: [Phoenix616]
+website: https://github.com/Phoenix616/SimpleHealthBar
 commands:
    simplehealthbar:
       aliases: [shb]
