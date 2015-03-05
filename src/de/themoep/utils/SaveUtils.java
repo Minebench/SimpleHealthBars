@@ -39,8 +39,7 @@ public class SaveUtils {
      * @param outputFile The file to write to
      */
     public void writeMap(Object object, String outputFile) {
-        try
-        {
+        try {
             File file = new File(folder.getPath() + folder.pathSeparator + outputFile);
             if (!file.isFile()) {
                 if(!file.createNewFile()){
@@ -53,8 +52,7 @@ public class SaveUtils {
             out.close();
             fileOut.close();
             logger.fine("Serialized data is saved in " + file.getPath());
-        }catch(IOException i)
-        {
+        } catch(IOException i) {
             i.printStackTrace();
         }
     }
@@ -79,23 +77,19 @@ public class SaveUtils {
                     logger.log(Level.INFO, "New file created in " + file.getPath());
                 }
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-        }
-        try
-        {
+        } 
+        try {
             FileInputStream fileIn = new FileInputStream(file.getPath());
             ObjectInputStream in = new ObjectInputStream(fileIn);
             map = (HashMap<Object, Object>) in.readObject();
             in.close();
             fileIn.close();
             logger.log(Level.INFO, "Sucessfully loaded cooldown.map.");
-        }catch(IOException i)
-        {
+        } catch(IOException i) {
             logger.log(Level.WARNING, "No saved Map found in " + inputFile);
         } catch (ClassNotFoundException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         return map;
