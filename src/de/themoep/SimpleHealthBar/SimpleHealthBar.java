@@ -4,17 +4,16 @@ import de.themoep.utils.SaveUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * SimpleHealthBar - Displayname controlled healthbar Bukkit plugin.
@@ -38,12 +37,26 @@ public class SimpleHealthBar extends JavaPlugin implements Listener {
 
     Map<UUID,Bar> mobs = new HashMap<UUID, Bar>();
     private SaveUtils saveutils;
+    
+    Map<EntityType, Integer> mobheight = new HashMap<EntityType, Integer>();
+    
+    boolean cnvfix = false;
 
     public void onEnable() {
-        ConfigurationSection section = this.getConfig().getConfigurationSection("moblist");
-        if(section != null)
-            for(String id : section.getKeys(false)) {
-                String name = section.getString(id);
+        this.saveDefaultConfig();
+        ConfigurationSection heightsection = this.getConfig().getConfigurationSection("mobheight");
+        if(heightsection != null)
+            for(String type : heightsection.getKeys(false))
+                try {
+                    mobheight.put(EntityType.valueOf(type.toUpperCase()), heightsection.getInt(type));
+                } catch (IllegalArgumentException e) {
+                    this.getLogger().warning(type + " is not a valid Bukkit EntityType! Couldn't load height for this mob!");
+                }
+        
+        ConfigurationSection listsection = this.getConfig().getConfigurationSection("moblist");
+        if(listsection != null)
+            for(String id : listsection.getKeys(false)) {
+                String name = listsection.getString(id);
 
                 if(name.contains("{heartbar}"))
                     mobs.put(UUID.fromString(id), new Bar(BarType.HEARTBAR, name));
@@ -61,7 +74,7 @@ public class SimpleHealthBar extends JavaPlugin implements Listener {
                         mobs.put(UUID.fromString(id), new Bar(BarType.BOSSBAR, name));
 
             }
-
+        cnvfix = this.getConfig().getBoolean("CustomNameVisibleFix");
         Bukkit.getPluginManager().registerEvents(this, this);
     }
 
@@ -171,13 +184,70 @@ public class SimpleHealthBar extends JavaPlugin implements Listener {
             if (b.getTypes().contains(BarType.BOSSBAR)) {
                 // TODO: Work in Progress
             }
-            e.setCustomName(name);
+            
+            setNameTag(e, name);
         }
     }
+    
+    public void setNameTag(LivingEntity e, String tag) {
+        if(cnvfix && e.isCustomNameVisible()) {
+            
+            this.getLogger().info("set tag: " + tag);
+            
+            clearSnowballs(e);
+            
+            Entity top = null;
+            Entity ridden = e;
+            
+            for(int i = 0; i < getMobHeight(e.getType()); i ++) {
+                top = e.getWorld().spawnEntity(e.getLocation(), EntityType.SNOWBALL);
+                ridden.setPassenger(top);
+                ridden = top;
+            }
+            if(top != null) {
+                top.setCustomNameVisible(true);
+                top.setCustomName(tag);
+            } else {
+                this.getLogger().severe("Top entity is null! This shouldn't be possible to happen... please report that immediately! You can disable the CustonNameVisibleFix option in your config for now.");
+                e.setCustomName(tag);
+            }
+            this.getLogger().info("read tag: " + top.getCustomName());
 
+        } else
+            e.setCustomName(tag);
+    }
+    
+    public int getMobHeight(EntityType et) {
+        if(mobheight.containsKey(et) && mobheight.get(et) > 0)
+            return mobheight.get(et);
+        return 1;
+    }
+
+    public void clearSnowballs(Entity e) {
+        if(cnvfix) {
+            e = e.getPassenger();
+            if(e != null) {
+                List<Entity> el = new ArrayList<Entity>();
+                while (e != null && e.getType() == EntityType.SNOWBALL) {
+                    el.add(e);
+                    e = e.getPassenger();
+                }
+                for (Entity ee : el) {
+                    ee.setCustomNameVisible(false);
+                    ee.setCustomName("");
+                    ee.remove();
+                }
+            }
+        }        
+    }
+    
     @EventHandler
     public void onMobDeath(EntityDeathEvent event) {
-        mobs.remove(event.getEntity().getUniqueId());
+        if(mobs.containsKey(event.getEntity().getUniqueId())) {
+            clearSnowballs(event.getEntity());
+            mobs.remove(event.getEntity().getUniqueId());
+        }
+            
     }
 
 }
