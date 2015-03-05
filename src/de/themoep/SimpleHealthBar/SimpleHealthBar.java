@@ -191,19 +191,28 @@ public class SimpleHealthBar extends JavaPlugin implements Listener {
     
     public void setNameTag(LivingEntity e, String tag) {
         if(cnvfix && e.isCustomNameVisible()) {
-            
-            this.getLogger().info("set tag: " + tag);
-            
-            clearSnowballs(e);
-            
+            e.setCustomName(null);
+
+            Entity sb = e.getPassenger();
+
             Entity top = null;
-            Entity ridden = e;
             
-            for(int i = 0; i < getMobHeight(e.getType()); i ++) {
-                top = e.getWorld().spawnEntity(e.getLocation(), EntityType.SNOWBALL);
-                ridden.setPassenger(top);
-                ridden = top;
+            while(sb != null && sb.getType() == EntityType.SNOWBALL) {
+                top = sb;
+                sb = sb.getPassenger();
             }
+            
+            if(top == null) {
+                Entity ridden = e;
+
+                for(int i = 0; i < getMobHeight(e.getType()); i ++) {
+                    top = e.getWorld().spawnEntity(e.getLocation(), EntityType.SNOWBALL);
+                    ridden.setPassenger(top);
+                    ridden = top;
+                }
+               
+            }
+            
             if(top != null) {
                 top.setCustomNameVisible(true);
                 top.setCustomName(tag);
@@ -211,7 +220,6 @@ public class SimpleHealthBar extends JavaPlugin implements Listener {
                 this.getLogger().severe("Top entity is null! This shouldn't be possible to happen... please report that immediately! You can disable the CustonNameVisibleFix option in your config for now.");
                 e.setCustomName(tag);
             }
-            this.getLogger().info("read tag: " + top.getCustomName());
 
         } else
             e.setCustomName(tag);
@@ -227,15 +235,10 @@ public class SimpleHealthBar extends JavaPlugin implements Listener {
         if(cnvfix) {
             e = e.getPassenger();
             if(e != null) {
-                List<Entity> el = new ArrayList<Entity>();
                 while (e != null && e.getType() == EntityType.SNOWBALL) {
-                    el.add(e);
+                    Entity remove = e;
                     e = e.getPassenger();
-                }
-                for (Entity ee : el) {
-                    ee.setCustomNameVisible(false);
-                    ee.setCustomName("");
-                    ee.remove();
+                    remove.remove();
                 }
             }
         }        
