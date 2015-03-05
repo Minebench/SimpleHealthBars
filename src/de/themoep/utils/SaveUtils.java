@@ -6,7 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * SimpleHealthBar - Displayname controlled healthbar Bukkit plugin.
+ * HashMap Java SaveUtils
  * Copyright (C) 2015 Max Lee (https://github.com/Phoenix616/)
  *
  * This program is free software: you can redistribute it and/or modify
