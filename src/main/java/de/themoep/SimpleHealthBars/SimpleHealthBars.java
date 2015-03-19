@@ -1,10 +1,11 @@
-package de.themoep.SimpleHealthBar;
+package de.themoep.SimpleHealthBars;
 
-import de.themoep.utils.SaveUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
@@ -12,10 +13,12 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
- * SimpleHealthBar - Displayname controlled healthbar Bukkit plugin.
+ * SimpleHealthBars - Displayname controlled healthbar Bukkit plugin.
  * Copyright (C) 2015 Max Lee (https://github.com/Phoenix616/)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -32,7 +35,7 @@ import java.util.*;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.*
  */
 
-public class SimpleHealthBar extends JavaPlugin implements Listener {
+public class SimpleHealthBars extends JavaPlugin implements Listener {
 
     Map<UUID,Bar> mobs = new HashMap<UUID, Bar>();
     

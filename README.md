@@ -1,4 +1,4 @@
-# SimpleHealthBar
+# SimpleHealthBars
 Simple mob health bar Bukkit plugin.
 
 Mobs with special variables in the name get healthbars.

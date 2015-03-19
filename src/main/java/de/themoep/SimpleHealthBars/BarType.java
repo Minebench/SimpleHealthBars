@@ -1,10 +1,7 @@
-package de.themoep.SimpleHealthBar;
-
-import java.util.ArrayList;
-import java.util.List;
+package de.themoep.SimpleHealthBars;
 
 /**
- * SimpleHealthBar - Displayname controlled healthbar Bukkit plugin.
+ *SimpleHealthBarsr - Displayname controlled healthbar Bukkit plugin.
  * Copyright (C) 2015 Max Lee (https://github.com/Phoenix616/)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,27 +18,11 @@ import java.util.List;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.*
  */
 
-public class Bar {
-    private String name;
-    private List<BarType> types = new ArrayList<BarType>();
+public enum BarType {
+    HEARTBAR,
+    PIPEBAR,
+    HEALTHSHORT,
+    BOSSBAR;
 
-    public Bar(List<String> types, String name) {
-        for(String s : types) {
-            this.types.add(BarType.valueOf(s.toUpperCase()));
-        }
-        this.name = name;
-    }
 
-    public Bar(BarType type, String name) {
-        this.types.add(type);
-        this.name = name;
-    }
-
-    public List<BarType> getTypes() {
-        return types;
-    }
-
-    public String getName() {
-        return name;
-    }
 }
