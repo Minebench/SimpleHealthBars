@@ -1,0 +1,17 @@
+name: SimpleHealthBar
+main: de.themoep.SimpleHealthBar.SimpleHealthBar
+version: 0.1.3
+description: Lets you display healthbars for mobs
+authors: [Phoenix616]
+website: https://github.com/Phoenix616/SimpleHealthBar
+commands:
+   simplehealthbar:
+      aliases: [shb]
+      description: Adminstrative Command (reloading)
+      usage: /<command>
+      permission: simplehealthbar.command
+      permission-message: You don't have the permission <permission>
+permissions:
+   simplehealthbar.command:
+      description: Gives permission to the simplehealthbar command
+      default: op

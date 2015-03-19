@@ -1,0 +1,13 @@
+CustomNameVisibleFix: true
+mobheight:
+  COW: 2
+  ZOMBIE: 2
+  SKELETON: 2
+  PLAYER: 2
+  BLAZE: 2
+  WITCH: 2
+  VILLAGER: 2
+  WITHER: 4
+  ENDERMAN: 3
+  PIG_ZOMBIE: 2
+  CREEPER: 2
