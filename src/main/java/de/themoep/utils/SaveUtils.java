@@ -86,7 +86,7 @@ public class SaveUtils {
             map = (HashMap<Object, Object>) in.readObject();
             in.close();
             fileIn.close();
-            logger.log(Level.INFO, "Sucessfully loaded cooldown.map.");
+            logger.log(Level.INFO, "Sucessfully loaded " + file.getName());
         } catch(IOException i) {
             logger.log(Level.WARNING, "No saved Map found in " + inputFile);
         } catch (ClassNotFoundException e) {
