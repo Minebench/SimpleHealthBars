@@ -1,6 +1,6 @@
 name: SimpleHealthBars
 main: de.themoep.SimpleHealthBars.SimpleHealthBars
-version: 0.1.3
+version: '${minecraft.plugin.version}'
 description: Lets you display healthbars for mobs
 authors: [Phoenix616]
 website: https://github.com/Minebench/SimpleHealthBars
@@ -13,5 +13,5 @@ commands:
       permission-message: You don't have the permission <permission>
 permissions:
    simplehealthbars.command:
-      description: Gives permission to the simplehealthbar command
+      description: Gives permission to the simplehealthbars command
       default: op
