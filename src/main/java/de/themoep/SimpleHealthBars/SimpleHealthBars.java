@@ -44,17 +44,17 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
     boolean cnvfix = false;
 
     public void onEnable() {
-        this.saveDefaultConfig();
-        ConfigurationSection heightsection = this.getConfig().getConfigurationSection("mobheight");
+        saveDefaultConfig();
+        ConfigurationSection heightsection = getConfig().getConfigurationSection("mobheight");
         if(heightsection != null)
             for(String type : heightsection.getKeys(false))
                 try {
                     mobheight.put(EntityType.valueOf(type.toUpperCase()), heightsection.getInt(type));
                 } catch (IllegalArgumentException e) {
-                    this.getLogger().warning(type + " is not a valid Bukkit EntityType! Couldn't load height for this mob!");
+                    getLogger().warning(type + " is not a valid Bukkit EntityType! Couldn't load height for this mob!");
                 }
         
-        ConfigurationSection listsection = this.getConfig().getConfigurationSection("moblist");
+        ConfigurationSection listsection = getConfig().getConfigurationSection("moblist");
         if(listsection != null)
             for(String id : listsection.getKeys(false)) {
                 String name = listsection.getString(id);
@@ -81,16 +81,16 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
                         mobs.put(UUID.fromString(id), new Bar(BarType.BOSSBAR, name));
 
             }
-        cnvfix = this.getConfig().getBoolean("CustomNameVisibleFix");
+        cnvfix = getConfig().getBoolean("CustomNameVisibleFix");
         Bukkit.getPluginManager().registerEvents(this, this);
     }
 
     public void onDisable() {
-        this.getConfig().set("moblist", null);
-        for(UUID id : this.mobs.keySet()) {
-            this.getConfig().set("moblist." + id.toString(), mobs.get(id).getName());
+        getConfig().set("moblist", null);
+        for(UUID id : mobs.keySet()) {
+            getConfig().set("moblist." + id.toString(), mobs.get(id).getName());
         }
-        this.saveConfig();
+        saveConfig();
     }
 
     @EventHandler
@@ -127,7 +127,7 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
                     mobs.put(e.getUniqueId(), new Bar(BarType.BOSSBAR, name));
             }
 
-            this.setBar(e, (int) (e.getHealth()));
+            setBar(e, (int) (e.getHealth()));
         }
     }
 
@@ -135,7 +135,7 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
     public void onMobDamager(EntityDamageEvent event) {
         if(event.getEntity() instanceof LivingEntity && mobs.containsKey(event.getEntity().getUniqueId())) {
             LivingEntity e = (LivingEntity) event.getEntity();
-            this.setBar(e, (int) (e.getHealth() - event.getDamage()));
+            setBar(e, (int) (e.getHealth() - event.getDamage()));
         }
     }
 
@@ -224,7 +224,7 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
                 top.setCustomNameVisible(true);
                 top.setCustomName(tag);
             } else {
-                this.getLogger().severe("Top entity is null! This shouldn't be possible to happen... please report that immediately! You can disable the CustonNameVisibleFix option in your config for now.");
+                getLogger().severe("Top entity is null! This shouldn't be possible to happen... please report that immediately! You can disable the CustonNameVisibleFix option in your config for now.");
                 e.setCustomName(tag);
             }
 
