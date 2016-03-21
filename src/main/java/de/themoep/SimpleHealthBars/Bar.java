@@ -28,6 +28,7 @@ public class Bar {
     private String name;
     private Set<BarType> types = new HashSet<BarType>();
     private BossBar bossBar;
+    private int bossBarRange;
 
     public Bar(List<String> types, String name) {
         for(String s : types) {
@@ -55,5 +56,13 @@ public class Bar {
 
     public void setBossBar(BossBar bossBar) {
         this.bossBar = bossBar;
+    }
+
+    public void setBossBarRange(int bossBarRange) {
+        this.bossBarRange = bossBarRange;
+    }
+
+    public int getBossBarRange() {
+        return bossBarRange;
     }
 }

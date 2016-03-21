@@ -56,7 +56,7 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
 
     private boolean cnvfix = false;
 
-    private int bossBarRange;
+    private int defaultBossBarRange;
     private Pattern bossBarPattern = Pattern.compile("\\{bossbar:(.*)\\}");
     // Default bossbar settings
     private BarColor defaultBossBarColor = BarColor.PURPLE;
@@ -64,7 +64,7 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
     private List<BarFlag> defaultBossBarFlags = new ArrayList<BarFlag>();
 
     public void onEnable() {
-        bossBarRange = getServer().getViewDistance() * 16;
+        defaultBossBarRange = getServer().getViewDistance() * 16;
         saveDefaultConfig();
         ConfigurationSection heightsection = getConfig().getConfigurationSection("mobheight");
         if(heightsection != null)
@@ -160,12 +160,12 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
             return;
         }
 
-        for(Entity e : player.getNearbyEntities(bossBarRange, bossBarRange, bossBarRange)) {
+        for(Entity e : player.getNearbyEntities(defaultBossBarRange, defaultBossBarRange, defaultBossBarRange)) {
             if(!mobs.containsKey(e.getUniqueId())) {
                 continue;
             }
             Bar bar = mobs.get(e.getUniqueId());
-            if(bar.getBossBar() != null) {
+            if(bar.getBossBar() != null && e.getLocation().distanceSquared(player.getLocation()) < bar.getBossBarRange() * bar.getBossBarRange()) {
                 bar.getBossBar().addPlayer(player);
             }
         }
@@ -193,6 +193,7 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
         if(name.contains("{bossbar")) {
             boolean contains = name.contains("{bossbar}");
 
+            int barRange = defaultBossBarRange;
             BarColor barColor = defaultBossBarColor;
             BarStyle barStyle = defaultBossBarStyle;
             List<BarFlag> barFlags = defaultBossBarFlags;
@@ -207,15 +208,19 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
                     String[] optionsStr = optionMatcher.group(1).toUpperCase().split(":");
                     for(String s : optionsStr) {
                         try {
-                            barColor = BarColor.valueOf(s);
-                        } catch(IllegalArgumentException noSuchBarColor) {
+                            barRange = Integer.parseInt(s);
+                        } catch(NumberFormatException notAnInteger) {
                             try {
-                                barStyle = BarStyle.valueOf(s);
-                            } catch(IllegalArgumentException noSuchBarStyle) {
+                                barColor = BarColor.valueOf(s);
+                            } catch(IllegalArgumentException noSuchBarColor) {
                                 try {
-                                    barFlags.add(BarFlag.valueOf(s));
-                                } catch(IllegalArgumentException noSuchBarFlag) {
-                                    getLogger().log(Level.WARNING, s + " is neither a valid BarColor, BarStyle or BarFlag enum! (Entity: " + id + "/" + name);
+                                    barStyle = BarStyle.valueOf(s);
+                                } catch(IllegalArgumentException noSuchBarStyle) {
+                                    try {
+                                        barFlags.add(BarFlag.valueOf(s));
+                                    } catch(IllegalArgumentException noSuchBarFlag) {
+                                        getLogger().log(Level.WARNING, s + " is neither a valid Integer, BarColor, BarStyle or BarFlag enum! (Entity: " + id + "/" + name);
+                                    }
                                 }
                             }
                         }
@@ -232,6 +237,7 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
                 BossBar bossBar = getServer().createBossBar("", barColor, barStyle, barFlags.toArray(new BarFlag[barFlags.size()]));
                 bossBar.setVisible(true);
                 mobs.get(id).setBossBar(bossBar);
+                mobs.get(id).setBossBarRange(barRange);
             }
         }
     }
@@ -295,8 +301,8 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
 
                 for(Player player : e.getWorld().getPlayers()) {
                     try {
-                        boolean addPlayer = !b.getBossBar().getPlayers().contains(player) && player.getLocation().distanceSquared(e.getLocation()) <= bossBarRange * bossBarRange;
-                        boolean removePlayer = !addPlayer && b.getBossBar().getPlayers().contains(player) && player.getLocation().distanceSquared(e.getLocation()) > bossBarRange * bossBarRange;
+                        boolean addPlayer = b.getBossBarRange() <= defaultBossBarRange && !b.getBossBar().getPlayers().contains(player) && player.getLocation().distanceSquared(e.getLocation()) <= b.getBossBarRange() * b.getBossBarRange();
+                        boolean removePlayer = !addPlayer && b.getBossBar().getPlayers().contains(player) && player.getLocation().distanceSquared(e.getLocation()) > b.getBossBarRange() * b.getBossBarRange();
                         if(addPlayer) {
                             b.getBossBar().addPlayer(player);
                         } else if(removePlayer) {
