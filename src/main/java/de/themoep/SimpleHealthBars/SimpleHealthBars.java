@@ -148,8 +148,11 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
 
             Matcher optionMatcher = bossBarPattern.matcher(name);
             while(optionMatcher.find()) {
+                if(optionMatcher.groupCount() < 1) {
+                    continue;
+                }
                 contains = true;
-                String[] optionsStr = optionMatcher.group().toUpperCase().split(":");
+                String[] optionsStr = optionMatcher.group(1).toUpperCase().split(":");
                 for(String s : optionsStr) {
                     try {
                         barColor = BarColor.valueOf(s);
@@ -233,7 +236,7 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
                 if(name.contains("{bossbar}")) {
                     name = name.replace("{bossbar}", "");
                 } else if(name.contains("{bossbar:")){
-                    name = name.replaceAll("\\{bossbar:(.*)\\}", "");
+                    name = bossBarPattern.matcher(name).replaceAll("");
                 }
                 b.getBossBar().setProgress(health / e.getMaxHealth());
 
