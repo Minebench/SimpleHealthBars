@@ -18,7 +18,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +58,7 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
     // Default bossbar settings
     private BarColor defaultBossBarColor = BarColor.PURPLE;
     private BarStyle defaultBossBarStyle = BarStyle.SOLID;
-    private BarFlag[] defaultBossBarFlags = {};
+    private List<BarFlag> defaultBossBarFlags = new ArrayList<BarFlag>();
 
     public void onEnable() {
         saveDefaultConfig();
@@ -144,7 +144,7 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
 
             BarColor barColor = defaultBossBarColor;
             BarStyle barStyle = defaultBossBarStyle;
-            List<BarFlag> barFlags = Arrays.asList(defaultBossBarFlags);
+            List<BarFlag> barFlags = defaultBossBarFlags;
 
             if(!contains) {
                 Matcher optionMatcher = bossBarPattern.matcher(name);
