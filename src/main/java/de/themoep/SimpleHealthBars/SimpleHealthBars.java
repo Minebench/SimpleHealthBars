@@ -2,10 +2,15 @@ package de.themoep.SimpleHealthBars;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarFlag;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
@@ -13,9 +18,14 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * SimpleHealthBars - Displayname controlled healthbar Bukkit plugin.
@@ -37,11 +47,18 @@ import java.util.UUID;
 
 public class SimpleHealthBars extends JavaPlugin implements Listener {
 
-    Map<UUID,Bar> mobs = new HashMap<UUID, Bar>();
-    
-    Map<EntityType, Integer> mobheight = new HashMap<EntityType, Integer>();
-    
-    boolean cnvfix = false;
+    private Map<UUID,Bar> mobs = new HashMap<UUID, Bar>();
+
+    private Map<EntityType, Integer> mobheight = new HashMap<EntityType, Integer>();
+
+    private boolean cnvfix = false;
+
+    private int bossBarRange = 10;
+    private Pattern bossBarPattern = Pattern.compile("\\{bossbar:(.*)\\}");
+    // Default bossbar settings
+    private BarColor defaultBossBarColor = BarColor.PURPLE;
+    private BarStyle defaultBossBarStyle = BarStyle.SOLID;
+    private BarFlag[] defaultBossBarFlags = {};
 
     public void onEnable() {
         saveDefaultConfig();
@@ -55,32 +72,11 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
                 }
         
         ConfigurationSection listsection = getConfig().getConfigurationSection("moblist");
-        if(listsection != null)
+        if(listsection != null) {
             for(String id : listsection.getKeys(false)) {
-                String name = listsection.getString(id);
-
-                if(name.contains("{heartbar}"))
-                    mobs.put(UUID.fromString(id), new Bar(BarType.HEARTBAR, name));
-
-                if(name.contains("{healthshort}"))
-                    if(mobs.containsKey(UUID.fromString(id)))
-                        mobs.get(UUID.fromString(id)).getTypes().add(BarType.HEALTHSHORT);
-                    else
-                        mobs.put(UUID.fromString(id), new Bar(BarType.HEALTHSHORT, name));
-
-                if(name.contains("{pipebar}"))
-                    if(mobs.containsKey(UUID.fromString(id)))
-                        mobs.get(UUID.fromString(id)).getTypes().add(BarType.HEALTHSHORT);
-                    else
-                        mobs.put(UUID.fromString(id), new Bar(BarType.HEALTHSHORT, name));
-
-                if(name.contains("{bossbar}"))
-                    if(mobs.containsKey(UUID.fromString(id)))
-                        mobs.get(UUID.fromString(id)).getTypes().add(BarType.BOSSBAR);
-                    else
-                        mobs.put(UUID.fromString(id), new Bar(BarType.BOSSBAR, name));
-
+                loadBar(UUID.fromString(id), listsection.getString(id));
             }
+        }
         cnvfix = getConfig().getBoolean("CustomNameVisibleFix");
         Bukkit.getPluginManager().registerEvents(this, this);
     }
@@ -98,44 +94,89 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
         LivingEntity e = event.getEntity();
         String name = e.getCustomName();
         if(name != null && !name.equals("")) {
-
-            if(name.toLowerCase().contains("{heartbar}")) {
-                if(mobs.containsKey(e.getUniqueId()))
-                    mobs.get(e.getUniqueId()).getTypes().add(BarType.HEARTBAR);
-                else
-                    mobs.put(e.getUniqueId(), new Bar(BarType.HEARTBAR, name));
-            }
-
-            if(name.toLowerCase().contains("{pipebar}")) {
-                if(mobs.containsKey(e.getUniqueId()))
-                    mobs.get(e.getUniqueId()).getTypes().add(BarType.PIPEBAR);
-                else
-                    mobs.put(e.getUniqueId(), new Bar(BarType.PIPEBAR, name));
-            }
-
-            if(name.toLowerCase().contains("{healthshort}")) {
-                if(mobs.containsKey(e.getUniqueId()))
-                    mobs.get(e.getUniqueId()).getTypes().add(BarType.HEALTHSHORT);
-                else
-                    mobs.put(e.getUniqueId(), new Bar(BarType.HEALTHSHORT, name));
-            }
-
-            if(name.toLowerCase().contains("{bossbar}")) {
-                if(mobs.containsKey(e.getUniqueId()))
-                    mobs.get(e.getUniqueId()).getTypes().add(BarType.BOSSBAR);
-                else
-                    mobs.put(e.getUniqueId(), new Bar(BarType.BOSSBAR, name));
-            }
-
+            loadBar(e.getUniqueId(), name);
             setBar(e, (int) (e.getHealth()));
         }
     }
 
     @EventHandler
-    public void onMobDamager(EntityDamageEvent event) {
+    public void onMobDamaged(EntityDamageEvent event) {
         if(event.getEntity() instanceof LivingEntity && mobs.containsKey(event.getEntity().getUniqueId())) {
             LivingEntity e = (LivingEntity) event.getEntity();
             setBar(e, (int) (e.getHealth() - event.getDamage()));
+        }
+    }
+
+    @EventHandler
+    public void onMobDeath(EntityDeathEvent event) {
+        if(mobs.containsKey(event.getEntity().getUniqueId())) {
+            clearSnowballs(event.getEntity());
+            BossBar bossBar = mobs.get(event.getEntity().getUniqueId()).getBossBar();
+            if(bossBar != null) {
+                bossBar.removeAll();
+                bossBar.setVisible(false);
+            }
+            mobs.remove(event.getEntity().getUniqueId());
+        }
+    }
+
+    private void loadBar(UUID id, String name) {
+        if(name.contains("{heartbar}")) {
+            mobs.put(id, new Bar(BarType.HEARTBAR, name));
+        }
+
+        if(name.contains("{healthshort}")) {
+            if(mobs.containsKey(id))
+                mobs.get(id).getTypes().add(BarType.HEALTHSHORT);
+            else
+                mobs.put(id, new Bar(BarType.HEALTHSHORT, name));
+        }
+
+        if(name.contains("{pipebar}")) {
+            if(mobs.containsKey(id))
+                mobs.get(id).getTypes().add(BarType.HEALTHSHORT);
+            else
+                mobs.put(id, new Bar(BarType.HEALTHSHORT, name));
+        }
+
+        if(name.contains("{bossbar")) {
+            boolean contains = false;
+
+            BarColor barColor = defaultBossBarColor;
+            BarStyle barStyle = defaultBossBarStyle;
+            List<BarFlag> barFlags = Arrays.asList(defaultBossBarFlags);
+
+            Matcher optionMatcher = bossBarPattern.matcher(name);
+            while(optionMatcher.find()) {
+                contains = true;
+                String[] optionsStr = optionMatcher.group().toUpperCase().split(":");
+                for(String s : optionsStr) {
+                    try {
+                        barColor = BarColor.valueOf(s);
+                    } catch(IllegalArgumentException noSuchBarColor) {
+                        try {
+                            barStyle = BarStyle.valueOf(s);
+                        } catch(IllegalArgumentException noSuchBarStyle) {
+                            try {
+                                barFlags.add(BarFlag.valueOf(s));
+                            } catch(IllegalArgumentException noSuchBarFlag) {
+                                getLogger().log(Level.WARNING, s + " is neither a valid BarColor, BarStyle or BarFlag enum! (Entity: " + id + "/" + name);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if(contains) {
+                if(mobs.containsKey(id))
+                    mobs.get(id).getTypes().add(BarType.BOSSBAR);
+                else
+                    mobs.put(id, new Bar(BarType.BOSSBAR, name));
+
+                BossBar bossBar = getServer().createBossBar("", barColor, barStyle, barFlags.toArray(new BarFlag[barFlags.size()]));
+                bossBar.setVisible(true);
+                mobs.get(id).setBossBar(bossBar);
+            }
         }
     }
 
@@ -189,7 +230,27 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
             }
 
             if (b.getTypes().contains(BarType.BOSSBAR)) {
-                // TODO: Work in Progress
+                if(name.contains("{bossbar}")) {
+                    name = name.replace("{bossbar}", "");
+                } else if(name.contains("{bossbar:")){
+                    name = name.replaceAll("\\{bossbar:(.*)\\}", "");
+                }
+                b.getBossBar().setProgress(health == 0 ? 0 : e.getMaxHealth() / health);
+
+                for(Player player : e.getWorld().getPlayers()) {
+                    try {
+                        boolean addPlayer = !b.getBossBar().getPlayers().contains(player) && player.getLocation().distanceSquared(e.getLocation()) <= bossBarRange * bossBarRange;
+                        boolean removePlayer = !addPlayer && b.getBossBar().getPlayers().contains(player) && player.getLocation().distanceSquared(e.getLocation()) > bossBarRange * bossBarRange;
+                        if(addPlayer) {
+                            b.getBossBar().addPlayer(player);
+                        } else if(removePlayer) {
+                            // This method does not send packets to the player if he isn't even in this BossBattle
+                            b.getBossBar().removePlayer(player);
+                        }
+                    } catch(IllegalArgumentException ignored) {
+                        // Thrown if the they aren't in the same world (which shouldn't happen) or something is null
+                    }
+                }
             }
             
             setNameTag(e, name);
@@ -230,6 +291,15 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
 
         } else
             e.setCustomName(tag);
+
+        if(mobs.containsKey(e.getUniqueId())) {
+            Bar b = mobs.get(e.getUniqueId());
+
+            if(b.getTypes().contains(BarType.BOSSBAR) && b.getBossBar() != null) {
+                b.getBossBar().setTitle(tag);
+                b.getBossBar().setVisible(true);
+            }
+        }
     }
     
     public int getMobHeight(EntityType et) {
@@ -249,15 +319,6 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
                 }
             }
         }        
-    }
-    
-    @EventHandler
-    public void onMobDeath(EntityDeathEvent event) {
-        if(mobs.containsKey(event.getEntity().getUniqueId())) {
-            clearSnowballs(event.getEntity());
-            mobs.remove(event.getEntity().getUniqueId());
-        }
-            
     }
 
 }

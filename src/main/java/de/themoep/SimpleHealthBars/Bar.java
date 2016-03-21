@@ -1,7 +1,10 @@
 package de.themoep.SimpleHealthBars;
 
-import java.util.ArrayList;
+import org.bukkit.boss.BossBar;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * SimpleHealthBars - Displayname controlled healthbar Bukkit plugin.
@@ -23,7 +26,8 @@ import java.util.List;
 
 public class Bar {
     private String name;
-    private List<BarType> types = new ArrayList<BarType>();
+    private Set<BarType> types = new HashSet<BarType>();
+    private BossBar bossBar;
 
     public Bar(List<String> types, String name) {
         for(String s : types) {
@@ -37,11 +41,19 @@ public class Bar {
         this.name = name;
     }
 
-    public List<BarType> getTypes() {
+    public Set<BarType> getTypes() {
         return types;
     }
 
     public String getName() {
         return name;
+    }
+
+    public BossBar getBossBar() {
+        return bossBar;
+    }
+
+    public void setBossBar(BossBar bossBar) {
+        this.bossBar = bossBar;
     }
 }
