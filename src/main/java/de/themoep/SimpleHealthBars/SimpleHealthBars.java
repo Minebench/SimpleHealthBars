@@ -56,7 +56,7 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
 
     private boolean cnvfix = false;
 
-    private int bossBarRange = 10;
+    private int bossBarRange;
     private Pattern bossBarPattern = Pattern.compile("\\{bossbar:(.*)\\}");
     // Default bossbar settings
     private BarColor defaultBossBarColor = BarColor.PURPLE;
@@ -64,6 +64,7 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
     private List<BarFlag> defaultBossBarFlags = new ArrayList<BarFlag>();
 
     public void onEnable() {
+        bossBarRange = getServer().getViewDistance() * 16;
         saveDefaultConfig();
         ConfigurationSection heightsection = getConfig().getConfigurationSection("mobheight");
         if(heightsection != null)
@@ -131,6 +132,8 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
 
         for(Map.Entry<UUID, Bar> barMob : mobs.entrySet()) {
             if(barMob.getValue().getBossBar() != null) {
+                // Just remove him from all the bars so that we don't have to check the distance twice
+                // as the client won't notice any flickering when he already has this bar
                 barMob.getValue().getBossBar().removePlayer(event.getPlayer());
             }
         }
