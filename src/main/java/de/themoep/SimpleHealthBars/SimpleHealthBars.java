@@ -16,6 +16,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
@@ -117,6 +120,51 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
                 bossBar.setVisible(false);
             }
             mobs.remove(event.getEntity().getUniqueId());
+        }
+    }
+
+    @EventHandler
+    public void onPlayerChangeChunk(PlayerMoveEvent event) {
+        if(event.getFrom().getChunk() == event.getTo().getChunk()) {
+            return;
+        }
+
+        for(Map.Entry<UUID, Bar> barMob : mobs.entrySet()) {
+            if(barMob.getValue().getBossBar() != null) {
+                barMob.getValue().getBossBar().removePlayer(event.getPlayer());
+            }
+        }
+        searchForBoss(event.getPlayer());
+    }
+
+    @EventHandler
+    public void onPlayerTeleport(PlayerTeleportEvent event) {
+        for(Bar bar : mobs.values()) {
+            if(bar.getBossBar() != null) {
+                bar.getBossBar().removePlayer(event.getPlayer());
+            }
+        }
+        searchForBoss(event.getPlayer());
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        searchForBoss(event.getPlayer());
+    }
+
+    private void searchForBoss(Player player) {
+        if(mobs.size() == 0) {
+            return;
+        }
+
+        for(Entity e : player.getNearbyEntities(bossBarRange, bossBarRange, bossBarRange)) {
+            if(!mobs.containsKey(e.getUniqueId())) {
+                continue;
+            }
+            Bar bar = mobs.get(e.getUniqueId());
+            if(bar.getBossBar() != null) {
+                bar.getBossBar().addPlayer(player);
+            }
         }
     }
 
