@@ -140,30 +140,32 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
         }
 
         if(name.contains("{bossbar")) {
-            boolean contains = false;
+            boolean contains = name.contains("{bossbar}");
 
             BarColor barColor = defaultBossBarColor;
             BarStyle barStyle = defaultBossBarStyle;
             List<BarFlag> barFlags = Arrays.asList(defaultBossBarFlags);
 
-            Matcher optionMatcher = bossBarPattern.matcher(name);
-            while(optionMatcher.find()) {
-                if(optionMatcher.groupCount() < 1) {
-                    continue;
-                }
-                contains = true;
-                String[] optionsStr = optionMatcher.group(1).toUpperCase().split(":");
-                for(String s : optionsStr) {
-                    try {
-                        barColor = BarColor.valueOf(s);
-                    } catch(IllegalArgumentException noSuchBarColor) {
+            if(!contains) {
+                Matcher optionMatcher = bossBarPattern.matcher(name);
+                while(optionMatcher.find()) {
+                    if(optionMatcher.groupCount() < 1) {
+                        continue;
+                    }
+                    contains = true;
+                    String[] optionsStr = optionMatcher.group(1).toUpperCase().split(":");
+                    for(String s : optionsStr) {
                         try {
-                            barStyle = BarStyle.valueOf(s);
-                        } catch(IllegalArgumentException noSuchBarStyle) {
+                            barColor = BarColor.valueOf(s);
+                        } catch(IllegalArgumentException noSuchBarColor) {
                             try {
-                                barFlags.add(BarFlag.valueOf(s));
-                            } catch(IllegalArgumentException noSuchBarFlag) {
-                                getLogger().log(Level.WARNING, s + " is neither a valid BarColor, BarStyle or BarFlag enum! (Entity: " + id + "/" + name);
+                                barStyle = BarStyle.valueOf(s);
+                            } catch(IllegalArgumentException noSuchBarStyle) {
+                                try {
+                                    barFlags.add(BarFlag.valueOf(s));
+                                } catch(IllegalArgumentException noSuchBarFlag) {
+                                    getLogger().log(Level.WARNING, s + " is neither a valid BarColor, BarStyle or BarFlag enum! (Entity: " + id + "/" + name);
+                                }
                             }
                         }
                     }
