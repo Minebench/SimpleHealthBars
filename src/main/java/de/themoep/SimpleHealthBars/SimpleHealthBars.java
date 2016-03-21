@@ -235,7 +235,7 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
                 } else if(name.contains("{bossbar:")){
                     name = name.replaceAll("\\{bossbar:(.*)\\}", "");
                 }
-                b.getBossBar().setProgress(health == 0 ? 0 : e.getMaxHealth() / health);
+                b.getBossBar().setProgress(health / e.getMaxHealth());
 
                 for(Player player : e.getWorld().getPlayers()) {
                     try {
