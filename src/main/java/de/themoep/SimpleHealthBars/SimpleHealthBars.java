@@ -30,7 +30,7 @@ import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
+/*
  * SimpleHealthBars - Displayname controlled healthbar Bukkit plugin.
  * Copyright (C) 2015 Max Lee (https://github.com/Phoenix616/)
  *
@@ -38,19 +38,19 @@ import java.util.regex.Pattern;
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
-
+ *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.*
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 public class SimpleHealthBars extends JavaPlugin implements Listener {
 
-    private Map<UUID,Bar> mobs = new HashMap<UUID, Bar>();
+    private Map<UUID, Bar> mobs = new HashMap<>();
 
     private Map<EntityType, Integer> mobheight = new HashMap<EntityType, Integer>();
 
@@ -67,17 +67,17 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
         defaultBossBarRange = getServer().getViewDistance() * 16;
         saveDefaultConfig();
         ConfigurationSection heightsection = getConfig().getConfigurationSection("mobheight");
-        if(heightsection != null)
-            for(String type : heightsection.getKeys(false))
+        if (heightsection != null)
+            for (String type : heightsection.getKeys(false))
                 try {
                     mobheight.put(EntityType.valueOf(type.toUpperCase()), heightsection.getInt(type));
                 } catch (IllegalArgumentException e) {
                     getLogger().warning(type + " is not a valid Bukkit EntityType! Couldn't load height for this mob!");
                 }
-        
+
         ConfigurationSection listsection = getConfig().getConfigurationSection("moblist");
-        if(listsection != null) {
-            for(String id : listsection.getKeys(false)) {
+        if (listsection != null) {
+            for (String id : listsection.getKeys(false)) {
                 loadBar(UUID.fromString(id), listsection.getString(id));
             }
         }
@@ -87,7 +87,7 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
 
     public void onDisable() {
         getConfig().set("moblist", null);
-        for(UUID id : mobs.keySet()) {
+        for (UUID id : mobs.keySet()) {
             getConfig().set("moblist." + id.toString(), mobs.get(id).getName());
         }
         saveConfig();
@@ -97,7 +97,7 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
     public void onMobSpawn(CreatureSpawnEvent event) {
         LivingEntity e = event.getEntity();
         String name = e.getCustomName();
-        if(name != null && !name.equals("")) {
+        if (name != null && !name.equals("")) {
             loadBar(e.getUniqueId(), name);
             setBar(e, (int) (e.getHealth()));
         }
@@ -105,7 +105,7 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onMobDamaged(EntityDamageEvent event) {
-        if(event.getEntity() instanceof LivingEntity && mobs.containsKey(event.getEntity().getUniqueId())) {
+        if (event.getEntity() instanceof LivingEntity && mobs.containsKey(event.getEntity().getUniqueId())) {
             LivingEntity e = (LivingEntity) event.getEntity();
             setBar(e, (int) (e.getHealth() - event.getDamage()));
         }
@@ -113,10 +113,10 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onMobDeath(EntityDeathEvent event) {
-        if(mobs.containsKey(event.getEntity().getUniqueId())) {
+        if (mobs.containsKey(event.getEntity().getUniqueId())) {
             clearSnowballs(event.getEntity());
             BossBar bossBar = mobs.get(event.getEntity().getUniqueId()).getBossBar();
-            if(bossBar != null) {
+            if (bossBar != null) {
                 bossBar.removeAll();
                 bossBar.setVisible(false);
             }
@@ -126,12 +126,12 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onPlayerChangeChunk(PlayerMoveEvent event) {
-        if(event.getFrom().getChunk() == event.getTo().getChunk()) {
+        if (event.getFrom().getChunk() == event.getTo().getChunk()) {
             return;
         }
 
-        for(Map.Entry<UUID, Bar> barMob : mobs.entrySet()) {
-            if(barMob.getValue().getBossBar() != null) {
+        for (Map.Entry<UUID, Bar> barMob : mobs.entrySet()) {
+            if (barMob.getValue().getBossBar() != null) {
                 // Just remove him from all the bars so that we don't have to check the distance twice
                 // as the client won't notice any flickering when he already has this bar
                 barMob.getValue().getBossBar().removePlayer(event.getPlayer());
@@ -142,8 +142,8 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onPlayerTeleport(PlayerTeleportEvent event) {
-        for(Bar bar : mobs.values()) {
-            if(bar.getBossBar() != null) {
+        for (Bar bar : mobs.values()) {
+            if (bar.getBossBar() != null) {
                 bar.getBossBar().removePlayer(event.getPlayer());
             }
         }
@@ -156,41 +156,39 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
     }
 
     private void searchForBoss(Player player) {
-        if(mobs.size() == 0) {
+        if (mobs.size() == 0) {
             return;
         }
 
-        for(Entity e : player.getNearbyEntities(defaultBossBarRange, defaultBossBarRange, defaultBossBarRange)) {
-            if(!mobs.containsKey(e.getUniqueId())) {
+        for (Entity e : player.getNearbyEntities(defaultBossBarRange, defaultBossBarRange, defaultBossBarRange)) {
+            if (!mobs.containsKey(e.getUniqueId())) {
                 continue;
             }
             Bar bar = mobs.get(e.getUniqueId());
-            if(bar.getBossBar() != null && e.getLocation().distanceSquared(player.getLocation()) < bar.getBossBarRange() * bar.getBossBarRange()) {
+            if (bar.getBossBar() != null && e.getLocation().distanceSquared(player.getLocation()) < bar.getBossBarRange() * bar.getBossBarRange()) {
                 bar.getBossBar().addPlayer(player);
             }
         }
     }
 
     private void loadBar(UUID id, String name) {
-        if(name.contains("{heartbar}")) {
+        if (name.contains("{heartbar}")) {
             mobs.put(id, new Bar(BarType.HEARTBAR, name));
         }
 
-        if(name.contains("{healthshort}")) {
-            if(mobs.containsKey(id))
-                mobs.get(id).getTypes().add(BarType.HEALTHSHORT);
-            else
-                mobs.put(id, new Bar(BarType.HEALTHSHORT, name));
+        if (name.contains("{healthshort}")) {
+            addBar(id, name, BarType.HEALTHSHORT);
         }
 
-        if(name.contains("{pipebar}")) {
-            if(mobs.containsKey(id))
-                mobs.get(id).getTypes().add(BarType.PIPEBAR);
-            else
-                mobs.put(id, new Bar(BarType.PIPEBAR, name));
+        if (name.contains("{health}")) {
+            addBar(id, name, BarType.HEALTH);
         }
 
-        if(name.contains("{bossbar")) {
+        if (name.contains("{pipebar}")) {
+            addBar(id, name, BarType.PIPEBAR);
+        }
+
+        if (name.contains("{bossbar")) {
             boolean contains = name.contains("{bossbar}");
 
             int barRange = defaultBossBarRange;
@@ -198,27 +196,27 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
             BarStyle barStyle = defaultBossBarStyle;
             List<BarFlag> barFlags = defaultBossBarFlags;
 
-            if(!contains) {
+            if (!contains) {
                 Matcher optionMatcher = bossBarPattern.matcher(name);
-                while(optionMatcher.find()) {
-                    if(optionMatcher.groupCount() < 1) {
+                while (optionMatcher.find()) {
+                    if (optionMatcher.groupCount() < 1) {
                         continue;
                     }
                     contains = true;
                     String[] optionsStr = optionMatcher.group(1).toUpperCase().split(":");
-                    for(String s : optionsStr) {
+                    for (String s : optionsStr) {
                         try {
                             barRange = Integer.parseInt(s);
-                        } catch(NumberFormatException notAnInteger) {
+                        } catch (NumberFormatException notAnInteger) {
                             try {
                                 barColor = BarColor.valueOf(s);
-                            } catch(IllegalArgumentException noSuchBarColor) {
+                            } catch (IllegalArgumentException noSuchBarColor) {
                                 try {
                                     barStyle = BarStyle.valueOf(s);
-                                } catch(IllegalArgumentException noSuchBarStyle) {
+                                } catch (IllegalArgumentException noSuchBarStyle) {
                                     try {
                                         barFlags.add(BarFlag.valueOf(s));
-                                    } catch(IllegalArgumentException noSuchBarFlag) {
+                                    } catch (IllegalArgumentException noSuchBarFlag) {
                                         getLogger().log(Level.WARNING, s + " is neither a valid Integer, BarColor, BarStyle or BarFlag enum! (Entity: " + id + "/" + name);
                                     }
                                 }
@@ -228,11 +226,8 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
                 }
             }
 
-            if(contains) {
-                if(mobs.containsKey(id))
-                    mobs.get(id).getTypes().add(BarType.BOSSBAR);
-                else
-                    mobs.put(id, new Bar(BarType.BOSSBAR, name));
+            if (contains) {
+                addBar(id, name, BarType.BOSSBAR);
 
                 BossBar bossBar = getServer().createBossBar("", barColor, barStyle, barFlags.toArray(new BarFlag[barFlags.size()]));
                 bossBar.setVisible(true);
@@ -242,13 +237,20 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
         }
     }
 
+    private void addBar(UUID id, String name, BarType type) {
+        if (mobs.containsKey(id))
+            mobs.get(id).getTypes().add(type);
+        else
+            mobs.put(id, new Bar(type, name));
+    }
+
     /**
      * Set the bar above the head of an entity to the bars defined in the map
-     * @param e The entity
+     * @param e      The entity
      * @param health The health to set the bar to
      */
     public void setBar(LivingEntity e, int health) {
-        if(mobs.containsKey(e.getUniqueId())) {
+        if (mobs.containsKey(e.getUniqueId())) {
             Bar b = mobs.get(e.getUniqueId());
             String name = b.getName();
             if (health < 0)
@@ -291,59 +293,63 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
                 name = name.replace("{healthshort}", ChatColor.RED + Integer.toString(health / 2) + ChatColor.GRAY + "/" + Integer.toString((int) e.getMaxHealth() / 2));
             }
 
+            if (b.getTypes().contains(BarType.HEALTH)) {
+                name = name.replace("{health}", Integer.toString(health / 2));
+            }
+
             if (b.getTypes().contains(BarType.BOSSBAR)) {
-                if(name.contains("{bossbar}")) {
+                if (name.contains("{bossbar}")) {
                     name = name.replace("{bossbar}", "");
-                } else if(name.contains("{bossbar:")){
+                } else if (name.contains("{bossbar:")) {
                     name = bossBarPattern.matcher(name).replaceAll("");
                 }
                 b.getBossBar().setProgress(health / e.getMaxHealth());
 
-                for(Player player : e.getWorld().getPlayers()) {
+                for (Player player : e.getWorld().getPlayers()) {
                     try {
                         boolean addPlayer = b.getBossBarRange() <= defaultBossBarRange && !b.getBossBar().getPlayers().contains(player) && player.getLocation().distanceSquared(e.getLocation()) <= b.getBossBarRange() * b.getBossBarRange();
                         boolean removePlayer = !addPlayer && b.getBossBar().getPlayers().contains(player) && player.getLocation().distanceSquared(e.getLocation()) > b.getBossBarRange() * b.getBossBarRange();
-                        if(addPlayer) {
+                        if (addPlayer) {
                             b.getBossBar().addPlayer(player);
-                        } else if(removePlayer) {
+                        } else if (removePlayer) {
                             // This method does not send packets to the player if he isn't even in this BossBattle
                             b.getBossBar().removePlayer(player);
                         }
-                    } catch(IllegalArgumentException ignored) {
+                    } catch (IllegalArgumentException ignored) {
                         // Thrown if the they aren't in the same world (which shouldn't happen) or something is null
                     }
                 }
             }
-            
+
             setNameTag(e, name);
         }
     }
-    
+
     public void setNameTag(LivingEntity e, String tag) {
-        if(cnvfix && e.isCustomNameVisible()) {
+        if (cnvfix && e.isCustomNameVisible()) {
             e.setCustomName(null);
 
             Entity sb = e.getPassenger();
 
             Entity top = null;
-            
-            while(sb != null && sb.getType() == EntityType.SNOWBALL) {
+
+            while (sb != null && sb.getType() == EntityType.SNOWBALL) {
                 top = sb;
                 sb = sb.getPassenger();
             }
-            
-            if(top == null) {
+
+            if (top == null) {
                 Entity ridden = e;
 
-                for(int i = 0; i < getMobHeight(e.getType()); i ++) {
+                for (int i = 0; i < getMobHeight(e.getType()); i++) {
                     top = e.getWorld().spawnEntity(e.getLocation(), EntityType.SNOWBALL);
                     ridden.setPassenger(top);
                     ridden = top;
                 }
-               
+
             }
-            
-            if(top != null) {
+
+            if (top != null) {
                 top.setCustomNameVisible(true);
                 top.setCustomName(tag);
             } else {
@@ -354,33 +360,33 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
         } else
             e.setCustomName(tag);
 
-        if(mobs.containsKey(e.getUniqueId())) {
+        if (mobs.containsKey(e.getUniqueId())) {
             Bar b = mobs.get(e.getUniqueId());
 
-            if(b.getTypes().contains(BarType.BOSSBAR) && b.getBossBar() != null) {
+            if (b.getTypes().contains(BarType.BOSSBAR) && b.getBossBar() != null) {
                 b.getBossBar().setTitle(tag);
                 b.getBossBar().setVisible(true);
             }
         }
     }
-    
+
     public int getMobHeight(EntityType et) {
-        if(mobheight.containsKey(et) && mobheight.get(et) > 0)
+        if (mobheight.containsKey(et) && mobheight.get(et) > 0)
             return mobheight.get(et);
         return 1;
     }
 
     public void clearSnowballs(Entity e) {
-        if(cnvfix) {
+        if (cnvfix) {
             e = e.getPassenger();
-            if(e != null) {
+            if (e != null) {
                 while (e != null && e.getType() == EntityType.SNOWBALL) {
                     Entity remove = e;
                     e = e.getPassenger();
                     remove.remove();
                 }
             }
-        }        
+        }
     }
 
 }
