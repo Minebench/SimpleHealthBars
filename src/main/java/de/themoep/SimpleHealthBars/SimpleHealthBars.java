@@ -16,6 +16,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -108,6 +109,14 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
         if (event.getEntity() instanceof LivingEntity && mobs.containsKey(event.getEntity().getUniqueId())) {
             LivingEntity e = (LivingEntity) event.getEntity();
             setBar(e, (int) (e.getHealth() - event.getDamage()));
+        }
+    }
+
+    @EventHandler
+    public void onMobHeal(EntityRegainHealthEvent event) {
+        if (event.getEntity() instanceof LivingEntity && mobs.containsKey(event.getEntity().getUniqueId())) {
+            LivingEntity e = (LivingEntity) event.getEntity();
+            setBar(e, (int) (e.getHealth() + event.getAmount()));
         }
     }
 
