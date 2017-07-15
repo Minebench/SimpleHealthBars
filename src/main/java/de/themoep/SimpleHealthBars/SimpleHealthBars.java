@@ -185,9 +185,9 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
 
         if(name.contains("{pipebar}")) {
             if(mobs.containsKey(id))
-                mobs.get(id).getTypes().add(BarType.HEALTHSHORT);
+                mobs.get(id).getTypes().add(BarType.PIPEBAR);
             else
-                mobs.put(id, new Bar(BarType.HEALTHSHORT, name));
+                mobs.put(id, new Bar(BarType.PIPEBAR, name));
         }
 
         if(name.contains("{bossbar")) {
