@@ -23,5 +23,6 @@ public enum BarType {
     PIPEBAR,
     HEALTHSHORT,
     HEALTH,
+    HEALTHPERCENTAGE,
     BOSSBAR;
 }

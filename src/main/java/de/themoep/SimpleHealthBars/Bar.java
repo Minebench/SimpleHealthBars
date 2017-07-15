@@ -26,7 +26,7 @@ import java.util.Set;
 
 public class Bar {
     private String name;
-    private Set<BarType> types = new HashSet<BarType>();
+    private Set<BarType> types = new HashSet<>();
     private BossBar bossBar;
     private int bossBarRange;
 

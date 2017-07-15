@@ -193,6 +193,10 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
             addBar(id, name, BarType.HEALTH);
         }
 
+        if (name.contains("{healthpercentage}")) {
+            addBar(id, name, BarType.HEALTHPERCENTAGE);
+        }
+
         if (name.contains("{pipebar}")) {
             addBar(id, name, BarType.PIPEBAR);
         }
@@ -304,6 +308,10 @@ public class SimpleHealthBars extends JavaPlugin implements Listener {
 
             if (b.getTypes().contains(BarType.HEALTH)) {
                 name = name.replace("{health}", Integer.toString(health / 2));
+            }
+
+            if (b.getTypes().contains(BarType.HEALTHPERCENTAGE)) {
+                name = name.replace("{healthpercentage}", Integer.toString((int) (health / e.getMaxHealth())));
             }
 
             if (b.getTypes().contains(BarType.BOSSBAR)) {
