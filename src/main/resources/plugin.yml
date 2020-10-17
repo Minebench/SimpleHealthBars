@@ -1,6 +1,7 @@
 name: SimpleHealthBars
 main: de.themoep.SimpleHealthBars.SimpleHealthBars
 version: '${minecraft.plugin.version}'
+api-version: 1.13
 description: Lets you display healthbars for mobs
 authors: [Phoenix616]
 website: https://github.com/Minebench/SimpleHealthBars
